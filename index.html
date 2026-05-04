@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vesna — Klientská dokumentace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- BG ORBS — liquid glass light source -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+    <div class="bg-orb bg-orb-4"></div>
+  </div>
+
+  <!-- ══ S0 — JAZYK / LANGUAGE ══ -->
+  <div id="s0" class="step active">
+    <div class="lang-screen">
+      <div class="lang-brand">
+        <img src="logo.png" alt="Vesna" class="brand-logo-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="brand-logo-txt" style="display:none">Vesna</div>
+        <div class="brand-sub">tattoo boutique · Praha</div>
+      </div>
+      <div class="lang-title">
+        <h1>Klientská dokumentace<br><em>Client documentation</em></h1>
+      </div>
+      <div class="lang-btns">
+        <button class="lang-btn" onclick="setLang('cz')">
+          <span class="lang-flag">🇨🇿</span>
+          <span class="lang-name">Čeština</span>
+          <span class="lang-sub">Pokračovat v češtině</span>
+        </button>
+        <button class="lang-btn" onclick="setLang('en')">
+          <span class="lang-flag">🇬🇧</span>
+          <span class="lang-name">English</span>
+          <span class="lang-sub">Continue in English</span>
+        </button>
+      </div>
+      <div class="lang-footer">Vesna Tattoo Prague · Náměstí Míru 18, Praha 2 · IČO 17213461</div>
+    </div>
+  </div>
+
+  <!-- ══ S1 — TYP FORMULÁŘE ══ -->
+  <div id="s1" class="step">
+    <div class="app-brand-top">
+      <img src="logo.png" alt="Vesna" class="brand-logo-img brand-logo-sm"
+           onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\'brand-logo-txt-sm\'>Vesna</span>')">
+      <button class="lang-switch" onclick="showStep(0)" id="lang-switch-btn">CZ / EN</button>
+    </div>
+    <div class="choose-hero">
+      <h1 id="s1-title">Klientská<br><em>dokumentace</em></h1>
+      <p id="s1-sub">Vyberte typ formuláře</p>
+    </div>
+    <div class="form-type-grid">
+      <button class="ftc" data-form="tattoo" onclick="chooseForm(this)">
+        <span class="ftc-icon">✦</span>
+        <div class="ftc-text">
+          <span class="ftc-name" id="ft-tattoo-name">Tetování / Piercing</span>
+          <span class="ftc-sub" id="ft-tattoo-sub">Souhlas dospělého</span>
+        </div>
+        <span class="ftc-arrow">→</span>
+      </button>
+      <button class="ftc ftc--soon" disabled>
+        <span class="ftc-icon">◆</span>
+        <div class="ftc-text">
+          <span class="ftc-name" id="ft-pmu-name">Permanentní makeup</span>
+          <span class="ftc-sub" id="ft-pmu-sub">Souhlas dospělého</span>
+        </div>
+        <span class="ftc-soon-badge" id="soon-badge">Brzy</span>
+      </button>
+      <button class="ftc ftc--soon" disabled>
+        <span class="ftc-icon">◇</span>
+        <div class="ftc-text">
+          <span class="ftc-name" id="ft-model-name">Modelka</span>
+          <span class="ftc-sub" id="ft-model-sub">Souhlas s focením a použitím fotografií</span>
+        </div>
+        <span class="ftc-soon-badge" id="soon-badge-2">Brzy</span>
+      </button>
+      <button class="ftc ftc--soon" disabled>
+        <span class="ftc-icon">○</span>
+        <div class="ftc-text">
+          <span class="ftc-name" id="ft-minor-name">Nezletilý</span>
+          <span class="ftc-sub" id="ft-minor-sub">Prohlášení zákonného zástupce</span>
+        </div>
+        <span class="ftc-soon-badge" id="soon-badge-3">Brzy</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ S2 — OSOBNÍ ÚDAJE ══ -->
+  <div id="s2" class="step">
+    <div class="shead">
+      <button class="back" onclick="goBack()">←</button>
+      <div class="dots" id="dots-2"></div>
+      <div class="svc-badge" id="badge-2"></div>
+    </div>
+    <div class="scontent">
+      <div class="sh">
+        <h2 id="s2-title">Osobní<br><em>údaje</em></h2>
+      </div>
+      <div class="fields">
+        <div class="fg">
+          <label id="lbl-name">Jméno a příjmení <span class="req">*</span></label>
+          <input type="text" id="f-name" placeholder="Jana Nováková" autocomplete="name">
+        </div>
+        <div class="fg">
+          <label id="lbl-dob">Datum narození <span class="req">*</span></label>
+          <input type="date" id="f-dob">
+        </div>
+        <div class="fg">
+          <label id="lbl-addr">Adresa trvalého bydliště <span class="req">*</span></label>
+          <input type="text" id="f-address" placeholder="Ulice 123, Praha">
+        </div>
+        <div class="fg">
+          <label id="lbl-email">E-mail</label>
+          <input type="email" id="f-email" placeholder="vase@email.cz" autocomplete="email" inputmode="email">
+        </div>
+      </div>
+
+      <!-- Parent section — only for minor -->
+      <div id="parent-section" style="display:none">
+        <div class="section-divider" id="lbl-parent-title">Zákonný zástupce</div>
+        <div class="fields">
+          <div class="fg">
+            <label id="lbl-pname">Jméno a příjmení zákonného zástupce <span class="req">*</span></label>
+            <input type="text" id="f-pname" placeholder="Marie Nováková">
+          </div>
+          <div class="fg">
+            <label id="lbl-prelation">Vztah k nezletilému <span class="req">*</span></label>
+            <select id="f-prelation">
+              <option value="">—</option>
+              <option id="opt-parent" value="Rodič">Rodič</option>
+              <option id="opt-guardian" value="Zákonný zástupce">Zákonný zástupce</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label id="lbl-pphone">Telefon zákonného zástupce <span class="req">*</span></label>
+            <input type="tel" id="f-pphone" placeholder="+420 600 000 000" inputmode="tel">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sfooter">
+      <button class="btn-p" id="s2-btn" onclick="step2Next()">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- ══ S3 — PROHLÁŠENÍ (health nebo model release) ══ -->
+  <div id="s3" class="step">
+    <div class="shead">
+      <button class="back" onclick="goBack()">←</button>
+      <div class="dots" id="dots-3"></div>
+      <div class="svc-badge" id="badge-3"></div>
+    </div>
+    <div class="scontent">
+      <div class="sh">
+        <h2 id="s3-title">Zdravotní<br><em>prohlášení</em></h2>
+        <p id="s3-sub">Zaškrtněte každé tvrzení, které potvrzujete jako pravdivé:</p>
+      </div>
+
+      <!-- Health checks (tattoo / pmu / minor) -->
+      <div id="health-section">
+        <div id="health-list" class="check-list"></div>
+        <div class="fg mt-16">
+          <label id="lbl-health-notes">Zdravotní obtíže (pokud máte, vypište)</label>
+          <textarea id="f-health-notes" placeholder="..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Model release text -->
+      <div id="model-section" style="display:none">
+        <div class="model-release-card" id="model-release-card"></div>
+      </div>
+    </div>
+    <div class="sfooter">
+      <button class="btn-p" id="s3-btn" onclick="step3Next()">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- ══ S4 — ODKUD / GDPR ══ -->
+  <div id="s4" class="step">
+    <div class="shead">
+      <button class="back" onclick="goBack()">←</button>
+      <div class="dots" id="dots-4"></div>
+      <div class="svc-badge" id="badge-4"></div>
+    </div>
+    <div class="scontent">
+      <!-- "How did you find us" — hidden for model -->
+      <div id="source-section">
+        <div class="sh">
+          <h2 id="s4-title">Jak jste se<br><em>o nás dozvěděli?</em></h2>
+        </div>
+        <div class="radio-list" id="source-list"></div>
+        <div id="source-other-wrap" class="fg mt-8" style="display:none">
+          <input type="text" id="f-source-other" placeholder="...">
+        </div>
+      </div>
+
+      <div class="gdpr-card" id="gdpr-card">
+        <div class="gdpr-title" id="gdpr-card-title">Souhlas se zpracováním osobních údajů</div>
+        <div class="gdpr-box">
+          <div class="gdpr-inner" id="gdpr-text"></div>
+        </div>
+        <label class="check-item gdpr-check-row">
+          <input type="checkbox" id="gdpr-check">
+          <span class="cm"></span>
+          <span id="gdpr-check-label">Přečetl/a jsem a souhlasím se zpracováním osobních údajů dle GDPR</span>
+        </label>
+      </div>
+    </div>
+    <div class="sfooter">
+      <button class="btn-p" id="s4-btn" onclick="step4Next()">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- ══ S5 — PODPIS ══ -->
+  <div id="s5" class="step">
+    <div class="shead">
+      <button class="back" onclick="goBack()">←</button>
+      <div class="dots" id="dots-5"></div>
+      <div class="svc-badge" id="badge-5"></div>
+    </div>
+    <div class="scontent">
+      <div class="sh">
+        <h2 id="s5-title">Podpis<br><em>klienta</em></h2>
+        <p id="s5-sub">Nakreslete svůj podpis prstem nebo stylusem:</p>
+      </div>
+      <div class="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <div class="sig-line" id="sig-line">Podpis klienta</div>
+      </div>
+      <button class="sig-clear" id="sig-clear-btn" onclick="clearSig()">Vymazat podpis</button>
+      <p class="sig-legal" id="sig-legal">Svým podpisem stvrzuji, že všechny výše uvedené informace jsou pravdivé, byl/a jsem poučen/a o povaze zákroku a jeho možných následcích ve smyslu § 93 odst. 1 zákona č. 89/2012 Sb.</p>
+    </div>
+    <div class="sfooter">
+      <button class="btn-p" id="submit-btn" onclick="submitForm()">Potvrdit a stáhnout PDF</button>
+    </div>
+  </div>
+
+  <!-- ══ S6 — HOTOVO ══ -->
+  <div id="s6" class="step">
+    <div class="done-wrap">
+      <div class="done-check">✓</div>
+      <h2 id="done-title">Hotovo!</h2>
+      <p id="done-desc">Prohlášení bylo podepsáno.<br>PDF se stahuje do vašeho zařízení.</p>
+      <div class="done-name" id="done-name"></div>
+      <div class="done-meta" id="done-meta"></div>
+      <button class="btn-p mt-24" id="dl-again-btn" onclick="downloadAgain()">Stáhnout PDF znovu</button>
+      <button class="btn-s mt-12" id="new-form-btn" onclick="newForm()">Nový formulář</button>
+    </div>
+  </div>
+
+  <!-- ══ PDF ŠABLONA ══ -->
+  <div id="pdf-tpl" aria-hidden="true">
+    <div id="pdf-body"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
