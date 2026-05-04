@@ -300,32 +300,18 @@ async function sendTelegramPDF() {
       `🗂 ${T[lang].forms[form].name}\n` +
       `🕐 ${state.timestamp}`;
 
-    // Конвертируем data URI → Blob
-    const base64 = pdfDataURL.split(',')[1];
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-
     const safeName = (state.name || 'klient').replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
     const dateStr  = new Date().toISOString().slice(0, 10);
     const fileName = `Vesna-Prohlaseni-${safeName}-${dateStr}.pdf`;
 
-    const fd = new FormData();
-    fd.append('chat_id', TG.chatId);
-    fd.append('document', blob, fileName);
-    fd.append('caption', caption);
-    fd.append('parse_mode', 'Markdown');
+    const pdfBase64 = pdfDataURL.split(',')[1];
 
-    const data = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.telegram.org/bot${TG.token}/sendDocument`);
-      xhr.timeout = 30000;
-      xhr.onload  = () => { try { resolve(JSON.parse(xhr.responseText)); } catch { resolve({}); } };
-      xhr.onerror = () => reject(new Error('XHR network error'));
-      xhr.ontimeout = () => reject(new Error('XHR timeout'));
-      xhr.send(fd);
+    const resp = await fetch('/api/send-telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdfBase64, fileName, caption }),
     });
+    const data = await resp.json();
     if (data.ok) return true;
     return 'TG:' + JSON.stringify(data).slice(0, 60);
   } catch (e) {
