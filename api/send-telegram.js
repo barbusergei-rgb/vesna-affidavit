@@ -109,7 +109,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
     margin: [0, 0, 0, 16],
   };
 
-  const sigSection = [
+  const makeSigSection = () => [
     { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#EAD8DB' }], margin: [0, 8, 0, 8] },
     {
       columns: [
@@ -215,7 +215,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       ...declParagraphs,
       ...healthSection,
       ...sourceSection,
-      ...sigSection,
+      ...makeSigSection(),
 
       // ── Страница 2: GDPR часть 1 ──
       { text: '', pageBreak: 'before' },
@@ -231,7 +231,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       { text: '', pageBreak: 'before' },
       gdprHeader,
       ...gdpr3,
-      ...sigSection,
+      ...makeSigSection(),
     ],
   };
 }
