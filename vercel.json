@@ -1,4 +1,5 @@
 {
   "installCommand": "npm install",
-  "outputDirectory": "."
+  "buildCommand": "mkdir -p public && cp index.html style.css app.js public/ && cp logo.png public/ 2>/dev/null; exit 0",
+  "outputDirectory": "public"
 }

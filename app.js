@@ -287,10 +287,13 @@ const TG = {
 
 async function sendTelegramPDF() {
   try {
-    if (!pdfDataURL) return;
     const dobFmt = state.dob
       ? new Date(state.dob).toLocaleDateString(lang === 'cz' ? 'cs-CZ' : 'en-GB')
       : '—';
+    const sourceText = state.source
+      ? ((state.source === 'Jinak' || state.source === 'Other')
+          ? (state.sourceOther || state.source) : state.source)
+      : '';
     const caption =
       `📋 *Podpisané prohlášení*\n` +
       `👤 ${state.name || '—'}\n` +
@@ -300,14 +303,22 @@ async function sendTelegramPDF() {
       `🗂 ${T[lang].forms[form].name}\n` +
       `🕐 ${state.timestamp}`;
 
-    const safeName = (state.name || 'klient').replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
-    const dateStr  = new Date().toISOString().slice(0, 10);
-    const fileName = `Vesna-Prohlaseni-${safeName}-${dateStr}.pdf`;
-
     const resp = await fetch('/api/send-telegram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ caption }),
+      body: JSON.stringify({
+        name:         state.name        || '',
+        dob:          dobFmt,
+        address:      state.address     || '',
+        email:        state.email       || '',
+        formTypeName: T[lang].forms[form].name,
+        healthNotes:  state.healthNotes || '',
+        source:       sourceText,
+        timestamp:    state.timestamp   || '',
+        sigDataURL:   state.sigDataURL  || '',
+        lang,
+        caption,
+      }),
     });
     const data = await resp.json();
     if (data.ok) return true;
@@ -805,7 +816,7 @@ async function canvasToPages(doc, canvas, isFirst) {
     ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
     const imgH = A4H * (srcH / pageH);
-    doc.addImage(chunk.toDataURL('image/jpeg', 0.75), 'JPEG', 0, 0, A4W, imgH);
+    doc.addImage(chunk.toDataURL('image/jpeg', 0.93), 'JPEG', 0, 0, A4W, imgH);
 
     srcY += pageH;
     pageIdx++;
@@ -823,7 +834,7 @@ async function renderSection(pdfEl, html, scale) {
   return html2canvas(pdfEl, {
     allowTaint: true,
     useCORS: false,
-    scale: scale || 1.0,
+    scale: scale || 1.5,
     backgroundColor: '#ffffff',
     width: 794,
     windowWidth: 794,
@@ -842,13 +853,20 @@ async function generatePDF() {
 
   pdfTpl.style.cssText = 'position:fixed;left:0;top:-9999px;width:794px;background:#fff;';
 
-  const html = buildCompactPDF();
-  const canvas = await renderSection(pdfEl, html, 1.0);
+  const { page1, page2, page3, page4 } = pdfCommon();
+
+  const c1 = await renderSection(pdfEl, page1);
+  const c2 = await renderSection(pdfEl, page2);
+  const c3 = await renderSection(pdfEl, page3);
+  const c4 = await renderSection(pdfEl, page4);
 
   pdfTpl.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;';
 
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-  await canvasToPages(doc, canvas, true);
+  await canvasToPages(doc, c1, true);
+  await canvasToPages(doc, c2, false);
+  await canvasToPages(doc, c3, false);
+  await canvasToPages(doc, c4, false);
 
   const safeName = (state.name || 'klient').replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
   const dateStr  = new Date().toISOString().slice(0, 10);
