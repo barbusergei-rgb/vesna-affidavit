@@ -321,8 +321,26 @@ async function sendTelegramPDF() {
       }),
     });
     const data = await resp.json();
+
+    if (data.pdfBase64) {
+      const safeName = (state.name || 'klient').replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+      const dateStr  = new Date().toISOString().slice(0, 10);
+      const fname    = `Vesna-Prohlaseni-${safeName}-${dateStr}.pdf`;
+      const bytes = atob(data.pdfBase64);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: 'application/pdf' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      pdfDataURL = 'data:application/pdf;base64,' + data.pdfBase64;
+    }
+
     if (data.ok) return true;
-    return 'TG:' + JSON.stringify(data).slice(0, 60);
+    return 'TG:' + (data.tgError || JSON.stringify(data)).slice(0, 60);
   } catch (e) {
     return 'TG:' + (e?.message || String(e)).slice(0, 60);
   }
@@ -654,11 +672,11 @@ async function submitForm() {
   const btn = document.getElementById('submit-btn');
   btn.textContent = t.generating; btn.disabled = true;
   try {
-    await generatePDF();
     const [ejsOk, tgOk] = await Promise.all([
       sendAffidavitEmail(),
       sendTelegramPDF(),
     ]);
+    if (!pdfDataURL) await generatePDF();
     console.log('email:', ejsOk, 'tg:', tgOk);
     showDone(ejsOk, tgOk);
   } catch (err) {

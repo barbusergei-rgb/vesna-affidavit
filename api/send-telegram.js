@@ -6,17 +6,36 @@ const STUDIO_ICO     = '17213461';
 const TG_TOKEN       = '***REMOVED***';
 const TG_CHAT_ID     = '1497672822';
 
-function stripHtml(html) {
-  return (html || '')
+// Конвертирует HTML → массив pdfmake-блоков
+// Сохраняет <strong> как bold, ▪ → •, пустые строки → параграф-отступ
+function htmlToPdf(html, fontSize) {
+  const fs = fontSize || 9;
+  const blocks = [];
+
+  const clean = (html || '')
     .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ').replace(/▪/g, '•');
+
+  const paragraphs = clean.split(/<br\s*\/?>\s*<br\s*\/?>|\n\n/gi);
+
+  for (const para of paragraphs) {
+    const line = para.replace(/<br\s*\/?>/gi, '\n').trim();
+    if (!line) continue;
+
+    // Параграф начинается с <strong>…</strong> — это заголовок секции
+    const headerM = line.match(/^<strong>([\s\S]*?)<\/strong>([\s\S]*)$/i);
+    if (headerM) {
+      const title = headerM[1].replace(/<[^>]+>/g, '').trim();
+      const body  = headerM[2].replace(/<[^>]+>/g, '').trim();
+      if (title) blocks.push({ text: title, fontSize: fs, bold: true, margin: [0, 6, 0, 2] });
+      if (body)  blocks.push({ text: body,  fontSize: fs, margin: [0, 0, 0, 4], lineHeight: 1.45 });
+    } else {
+      const text = line.replace(/<[^>]+>/g, '');
+      if (text) blocks.push({ text, fontSize: fs, margin: [0, 0, 0, 4], lineHeight: 1.45 });
+    }
+  }
+  return blocks;
 }
 
 const DECLARATION = {
@@ -55,16 +74,16 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
   const declText = DECLARATION[l](name || '—', dob || '—', address || '—');
   const declParagraphs = declText.split('\n\n').map((p, i) => ({
     text: p,
-    fontSize: i === 0 ? 11 : 10,
+    fontSize: 9,
     bold: i === 0,
-    margin: [0, 0, 0, i === 0 ? 14 : 10],
-    lineHeight: 1.6,
+    margin: [0, 0, 0, 7],
+    lineHeight: 1.45,
   }));
 
   const gdprParts = GDPR_HTML[l].split('<!-- SPLIT -->');
-  const gdpr1 = stripHtml(gdprParts[0] || '');
-  const gdpr2 = stripHtml(gdprParts[1] || '');
-  const gdpr3 = stripHtml(gdprParts[2] || '');
+  const gdpr1 = htmlToPdf(gdprParts[0] || '', 9);
+  const gdpr2 = htmlToPdf(gdprParts[1] || '', 9);
+  const gdpr3 = htmlToPdf(gdprParts[2] || '', 9);
 
   const lbl = (txt) => ({ text: txt, fontSize: 7, color: '#CE567C', bold: true, margin: [0, 4, 0, 1] });
   const val = (txt) => ({ text: String(txt || '—'), fontSize: 10, bold: true, color: '#2A2A2A' });
@@ -171,19 +190,15 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
     fontSize: 9, margin: [0, 0, 0, 12],
   }] : [];
 
-  const gdprTitle = l === 'en'
-    ? 'PERSONAL DATA PROCESSING DECLARATION (GDPR)'
-    : 'PROHLÁŠENÍ O ZPRACOVÁNÍ OSOBNÍCH ÚDAJŮ (GDPR)';
-
   return {
     pageSize: 'A4',
     pageMargins: [40, 50, 40, 50],
-    defaultStyle: { font: 'Roboto', fontSize: 10, color: '#2A2A2A', lineHeight: 1.5 },
+    defaultStyle: { font: 'Roboto', fontSize: 9, color: '#2A2A2A', lineHeight: 1.45 },
     content: [
-      // ── Страница 1: Проhlášení ──
+      // ── Страница 1: Декларация ──
       header,
-      pinkLine,
-      { text: l === 'en' ? 'CLIENT DECLARATION' : 'ČESTNÉ PROHLÁŠENÍ', fontSize: 16, bold: true, color: '#3a1020', alignment: 'center', margin: [0, 0, 0, 8] },
+      { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2.5, lineColor: '#FFC3CC' }], margin: [0, 0, 0, 10] },
+      { text: l === 'en' ? 'CLIENT DECLARATION' : 'ČESTNÉ PROHLÁŠENÍ', fontSize: 15, bold: true, color: '#3a1020', alignment: 'center', margin: [0, 0, 0, 8] },
       clientInfo,
       emailRow,
       ...declParagraphs,
@@ -197,8 +212,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       { text: '', pageBreak: 'before' },
       header,
       pinkLine,
-      { text: gdprTitle, fontSize: 11, bold: true, color: '#3a1020', margin: [0, 0, 0, 10] },
-      { text: gdpr1, fontSize: 9, lineHeight: 1.55 },
+      ...gdpr1,
       thinLine,
       footerText,
 
@@ -206,7 +220,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       { text: '', pageBreak: 'before' },
       header,
       pinkLine,
-      { text: gdpr2, fontSize: 9, lineHeight: 1.55 },
+      ...gdpr2,
       thinLine,
       footerText,
 
@@ -214,7 +228,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       { text: '', pageBreak: 'before' },
       header,
       pinkLine,
-      { text: gdpr3, fontSize: 9, lineHeight: 1.55 },
+      ...gdpr3,
       ...sigSection,
       thinLine,
       footerText,
@@ -268,9 +282,22 @@ module.exports = async function handler(req, res) {
     fd.append('caption', (req.body && req.body.caption) || '📋 Podpisané prohlášení');
     fd.append('parse_mode', 'Markdown');
 
-    const tgRes = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: fd });
-    const data  = await tgRes.json();
-    return res.status(200).json(data);
+    let tgOk = false;
+    let tgError = null;
+    try {
+      const tgRes = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: fd });
+      const tgData = await tgRes.json();
+      tgOk = tgData.ok;
+      if (!tgOk) tgError = tgData.description || JSON.stringify(tgData);
+    } catch (e) {
+      tgError = e.message;
+    }
+
+    return res.status(200).json({
+      ok: tgOk,
+      tgError,
+      pdfBase64: pdfBuffer.toString('base64'),
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: e.message });
