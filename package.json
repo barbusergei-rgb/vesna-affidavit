@@ -1,0 +1,10 @@
+{
+  "name": "vesna-affidavit",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "echo built"
+  },
+  "dependencies": {
+    "pdfmake": "^0.2.9"
+  }
+}
