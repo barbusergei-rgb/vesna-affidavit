@@ -304,12 +304,10 @@ async function sendTelegramPDF() {
     const dateStr  = new Date().toISOString().slice(0, 10);
     const fileName = `Vesna-Prohlaseni-${safeName}-${dateStr}.pdf`;
 
-    const pdfBase64 = pdfDataURL.split(',')[1];
-
     const resp = await fetch('/api/send-telegram', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pdfBase64, fileName, caption }),
+      body: JSON.stringify({ caption }),
     });
     const data = await resp.json();
     if (data.ok) return true;
@@ -807,7 +805,7 @@ async function canvasToPages(doc, canvas, isFirst) {
     ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
     const imgH = A4H * (srcH / pageH);
-    doc.addImage(chunk.toDataURL('image/jpeg', 0.93), 'JPEG', 0, 0, A4W, imgH);
+    doc.addImage(chunk.toDataURL('image/jpeg', 0.75), 'JPEG', 0, 0, A4W, imgH);
 
     srcY += pageH;
     pageIdx++;
@@ -818,15 +816,14 @@ async function tick() {
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-async function renderSection(pdfEl, html) {
-  // Reset wrapper so there's no double padding
+async function renderSection(pdfEl, html, scale) {
   pdfEl.style.cssText = 'width:794px;padding:0;margin:0;box-sizing:border-box;background:#fff;position:relative;';
   pdfEl.innerHTML = html;
   await tick();
   return html2canvas(pdfEl, {
     allowTaint: true,
     useCORS: false,
-    scale: 1.5,
+    scale: scale || 1.0,
     backgroundColor: '#ffffff',
     width: 794,
     windowWidth: 794,
@@ -843,24 +840,15 @@ async function generatePDF() {
   const pdfTpl = document.getElementById('pdf-tpl');
   const pdfEl  = document.getElementById('pdf-body');
 
-  // Make wrapper visible to html2canvas (off-screen vertically, not horizontally)
   pdfTpl.style.cssText = 'position:fixed;left:0;top:-9999px;width:794px;background:#fff;';
 
-  const { page1, page2, page3, page4 } = pdfCommon();
+  const html = buildCompactPDF();
+  const canvas = await renderSection(pdfEl, html, 1.0);
 
-  const c1 = await renderSection(pdfEl, page1);
-  const c2 = await renderSection(pdfEl, page2);
-  const c3 = await renderSection(pdfEl, page3);
-  const c4 = await renderSection(pdfEl, page4);
-
-  // Restore hidden position
   pdfTpl.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;';
 
   const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-  await canvasToPages(doc, c1, true);
-  await canvasToPages(doc, c2, false);
-  await canvasToPages(doc, c3, false);
-  await canvasToPages(doc, c4, false);
+  await canvasToPages(doc, canvas, true);
 
   const safeName = (state.name || 'klient').replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
   const dateStr  = new Date().toISOString().slice(0, 10);
@@ -868,6 +856,116 @@ async function generatePDF() {
 
   pdfDataURL = doc.output('datauristring');
   doc.save(fname);
+}
+
+function buildCompactPDF() {
+  const t = T[lang];
+  const dobFmt = state.dob
+    ? new Date(state.dob).toLocaleDateString(lang === 'cz' ? 'cs-CZ' : 'en-GB')
+    : '—';
+
+  const logoHTML = logoDataURL
+    ? `<img src="${logoDataURL}" style="height:28px;width:auto;">`
+    : `<span style="font-size:18px;font-weight:700;color:#3a1020;">Vesna</span>`;
+
+  const sourceText = state.source
+    ? ((state.source === 'Jinak' || state.source === 'Other')
+        ? (state.sourceOther || state.source) : state.source)
+    : '—';
+
+  const declText = DECLARATION[lang](state.name, dobFmt, state.address);
+  const declHTML = declText.split('\n\n').map((p, i) => {
+    const style = i === 0
+      ? 'font-weight:700;font-size:8px;margin-bottom:4px;'
+      : 'margin-bottom:4px;';
+    return `<p style="${style}">${esc(p).replace(/\n/g,'<br>')}</p>`;
+  }).join('');
+
+  const gdprHTML = GDPR_FULL[lang].replace(/<!--\s*SPLIT\s*-->/g, '');
+
+  const healthHTML = state.healthNotes ? `
+    <div style="margin:5px 0;padding:4px 8px;background:#FFF5F7;border-left:2px solid #FFC3CC;border-radius:3px;">
+      <span style="font-size:6px;font-weight:700;color:#CE567C;text-transform:uppercase;">${lang === 'cz' ? 'Zdravotní obtíže' : 'Health issues'}:</span>
+      <span style="font-size:7px;"> ${esc(state.healthNotes)}</span>
+    </div>` : '';
+
+  const sourceHTML = form !== 'model' ? `
+    <div style="margin:3px 0;font-size:7px;">
+      <span style="color:#CE567C;font-weight:700;">${lang === 'cz' ? 'Jak jste se o nás dozvěděli' : 'How did you find us'}:</span>
+      <span> ${esc(sourceText)}</span>
+    </div>` : '';
+
+  const sigHTML = `
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #EAD8DB;display:flex;justify-content:space-between;align-items:flex-end;">
+      <div>
+        ${state.sigDataURL ? `<img src="${state.sigDataURL}" style="max-height:44px;max-width:150px;display:block;margin-bottom:3px;">` : '<div style="height:44px;"></div>'}
+        <div style="border-bottom:1px solid #C0A8B0;width:160px;margin-bottom:3px;"></div>
+        <div style="font-size:6.5px;color:#9a6070;text-transform:uppercase;letter-spacing:0.05em;">${esc(t.pdfSigLabel)}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:9px;font-weight:700;color:#2A2A2A;">${esc(state.timestamp)}</div>
+        <div style="font-size:6.5px;color:#9a6070;">${t.pdfDateLabel}</div>
+      </div>
+    </div>`;
+
+  return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:7.5px;color:#2A2A2A;line-height:1.35;padding:18px 24px;background:#ffffff;width:794px;box-sizing:border-box;">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:2px solid #FFC3CC;margin-bottom:10px;">
+      <div>
+        ${logoHTML}
+        <div style="font-size:6px;color:#9a6070;letter-spacing:0.12em;text-transform:uppercase;margin-top:1px;">tattoo boutique · Praha</div>
+      </div>
+      <div style="text-align:right;font-size:7px;color:#9a6070;line-height:1.5;">
+        ${esc(STUDIO.name)}<br>${esc(STUDIO.address)}<br>IČO: ${STUDIO.ico}
+      </div>
+    </div>
+
+    <!-- Client info -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:3px 8px;background:#FFF5F7;padding:7px 10px;border-radius:4px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:6px;color:#CE567C;font-weight:700;text-transform:uppercase;margin-bottom:1px;">${lang === 'cz' ? 'Jméno' : 'Name'}</div>
+        <div style="font-weight:600;font-size:8px;">${esc(state.name || '—')}</div>
+      </div>
+      <div>
+        <div style="font-size:6px;color:#CE567C;font-weight:700;text-transform:uppercase;margin-bottom:1px;">${lang === 'cz' ? 'Datum narození' : 'Date of birth'}</div>
+        <div style="font-weight:600;font-size:8px;">${esc(dobFmt)}</div>
+      </div>
+      <div style="grid-column:span 2;">
+        <div style="font-size:6px;color:#CE567C;font-weight:700;text-transform:uppercase;margin-bottom:1px;">${lang === 'cz' ? 'Adresa' : 'Address'}</div>
+        <div style="font-weight:600;font-size:8px;">${esc(state.address || '—')}</div>
+      </div>
+      ${state.email ? `<div style="grid-column:span 2;">
+        <div style="font-size:6px;color:#CE567C;font-weight:700;text-transform:uppercase;margin-bottom:1px;">E-mail</div>
+        <div style="font-size:7.5px;">${esc(state.email)}</div>
+      </div>` : ''}
+      <div>
+        <div style="font-size:6px;color:#CE567C;font-weight:700;text-transform:uppercase;margin-bottom:1px;">${lang === 'cz' ? 'Typ' : 'Type'}</div>
+        <div style="font-size:7.5px;">${esc(t.forms[form].name)}</div>
+      </div>
+    </div>
+
+    <!-- Declaration -->
+    <div style="margin-bottom:8px;">${declHTML}</div>
+
+    ${healthHTML}
+    ${sourceHTML}
+
+    <!-- GDPR -->
+    <div style="border-top:1px solid #EAD8DB;margin-top:8px;padding-top:8px;">
+      <div style="font-size:6.5px;font-weight:700;color:#CE567C;text-transform:uppercase;margin-bottom:4px;">
+        ${lang === 'cz' ? 'Prohlášení o zpracování osobních údajů (GDPR)' : 'Personal data processing declaration (GDPR)'}
+      </div>
+      <div style="font-size:6.5px;line-height:1.3;color:#3a3030;">${gdprHTML}</div>
+    </div>
+
+    ${sigHTML}
+
+    <!-- Footer -->
+    <div style="margin-top:8px;padding-top:6px;border-top:1px solid #EAD8DB;font-size:6.5px;color:#b0a0a4;text-align:center;">
+      ${esc(STUDIO.name)} · ${esc(STUDIO.address)} · IČO: ${STUDIO.ico}
+    </div>
+  </div>`;
 }
 
 /* ══ DONE ══ */
