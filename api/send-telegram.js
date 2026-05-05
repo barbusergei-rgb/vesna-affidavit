@@ -109,16 +109,6 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
     margin: [0, 0, 0, 16],
   };
 
-  const thinLine = {
-    canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#EAD8DB' }],
-    margin: [0, 12, 0, 4],
-  };
-
-  const footerText = {
-    text: `${STUDIO_NAME} · ${STUDIO_ADDRESS} · IČO: ${STUDIO_ICO}`,
-    fontSize: 7, color: '#b0a0a4', alignment: 'center',
-  };
-
   const sigSection = [
     { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#EAD8DB' }], margin: [0, 8, 0, 8] },
     {
@@ -129,7 +119,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
               ? { image: sigDataURL, width: 150, height: 50, margin: [0, 0, 0, 4] }
               : { text: '', margin: [0, 50, 0, 4] },
             { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 160, y2: 0, lineWidth: 0.5, lineColor: '#C0A8B0' }], margin: [0, 0, 0, 2] },
-            { text: l === 'en' ? 'Client signature' : 'Podpis klienta', fontSize: 7, color: '#9a6070', characterSpacing: 0.5 },
+            { text: l === 'en' ? 'Client signature' : 'Podpis klienta', fontSize: 8, color: '#9a6070', characterSpacing: 0.5 },
           ],
         },
         {
@@ -190,10 +180,31 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
     fontSize: 9, margin: [0, 0, 0, 12],
   }] : [];
 
+  const gdprHeader = {
+    columns: [
+      {
+        stack: [
+          { text: 'Vesna', fontSize: 22, bold: true, color: '#3a1020' },
+          { text: 'tattoo boutique · Praha', fontSize: 7, color: '#9a6070', characterSpacing: 1, margin: [0, 1, 0, 0] },
+        ],
+      },
+      {
+        text: `${STUDIO_NAME}\n${STUDIO_ADDRESS}\nIČO: ${STUDIO_ICO}`,
+        alignment: 'right', fontSize: 9, color: '#9a6070', lineHeight: 1.7,
+      },
+    ],
+    margin: [0, 0, 0, 12],
+  };
+
   return {
     pageSize: 'A4',
-    pageMargins: [40, 40, 40, 40],
+    pageMargins: [40, 40, 40, 50],
     defaultStyle: { font: 'Roboto', fontSize: 9, color: '#2A2A2A', lineHeight: 1.45 },
+    footer: () => ({
+      text: `${STUDIO_NAME} · ${STUDIO_ADDRESS} · IČO: ${STUDIO_ICO}`,
+      fontSize: 7, color: '#b0a0a4', alignment: 'center',
+      margin: [40, 8, 40, 0],
+    }),
     content: [
       // ── Страница 1: Декларация ──
       header,
@@ -208,28 +219,19 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
 
       // ── Страница 2: GDPR часть 1 ──
       { text: '', pageBreak: 'before' },
-      header,
-      pinkLine,
+      gdprHeader,
       ...gdpr1,
-      thinLine,
-      footerText,
 
       // ── Страница 3: GDPR часть 2 ──
       { text: '', pageBreak: 'before' },
-      header,
-      pinkLine,
+      gdprHeader,
       ...gdpr2,
-      thinLine,
-      footerText,
 
       // ── Страница 4: GDPR часть 3 + подпись ──
       { text: '', pageBreak: 'before' },
-      header,
-      pinkLine,
+      gdprHeader,
       ...gdpr3,
       ...sigSection,
-      thinLine,
-      footerText,
     ],
   };
 }
