@@ -74,10 +74,10 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
   const declText = DECLARATION[l](name || '—', dob || '—', address || '—');
   const declParagraphs = declText.split('\n\n').map((p, i) => ({
     text: p,
-    fontSize: 9,
+    fontSize: 8.5,
     bold: i === 0,
-    margin: [0, 0, 0, 7],
-    lineHeight: 1.45,
+    margin: [0, 0, 0, 5],
+    lineHeight: 1.35,
   }));
 
   const gdprParts = GDPR_HTML[l].split('<!-- SPLIT -->');
@@ -192,21 +192,19 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
 
   return {
     pageSize: 'A4',
-    pageMargins: [40, 50, 40, 50],
+    pageMargins: [40, 40, 40, 40],
     defaultStyle: { font: 'Roboto', fontSize: 9, color: '#2A2A2A', lineHeight: 1.45 },
     content: [
       // ── Страница 1: Декларация ──
       header,
-      { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2.5, lineColor: '#FFC3CC' }], margin: [0, 0, 0, 10] },
-      { text: l === 'en' ? 'CLIENT DECLARATION' : 'ČESTNÉ PROHLÁŠENÍ', fontSize: 15, bold: true, color: '#3a1020', alignment: 'center', margin: [0, 0, 0, 8] },
+      { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2.5, lineColor: '#FFC3CC' }], margin: [0, 0, 0, 8] },
+      { text: l === 'en' ? 'CLIENT DECLARATION' : 'ČESTNÉ PROHLÁŠENÍ', fontSize: 13, bold: true, color: '#3a1020', alignment: 'center', margin: [0, 0, 0, 6] },
       clientInfo,
       emailRow,
       ...declParagraphs,
       ...healthSection,
       ...sourceSection,
       ...sigSection,
-      thinLine,
-      footerText,
 
       // ── Страница 2: GDPR часть 1 ──
       { text: '', pageBreak: 'before' },
