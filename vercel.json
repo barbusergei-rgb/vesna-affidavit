@@ -1,3 +1,5 @@
 {
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "buildCommand": "echo built",
+  "outputDirectory": "."
 }
