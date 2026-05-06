@@ -3,8 +3,8 @@
 const STUDIO_NAME    = 'Vesna inc s.r.o.';
 const STUDIO_ADDRESS = 'Náměstí Míru 18, 120 00 Praha 2';
 const STUDIO_ICO     = '17213461';
-const TG_TOKEN       = '***REMOVED***';
-const TG_CHAT_ID     = '1497672822';
+const TG_TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
+const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 // Конвертирует HTML → массив pdfmake-блоков
 // Сохраняет <strong> как bold, ▪ → •, пустые строки → параграф-отступ
@@ -244,6 +244,11 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  const secret = process.env.AFFIDAVIT_SECRET;
+  if (secret && req.headers['x-affidavit-token'] !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   try {
     const PdfPrinter    = require('pdfmake');
     const vfsFontsModule = require('pdfmake/build/vfs_fonts');
@@ -261,7 +266,23 @@ module.exports = async function handler(req, res) {
     };
 
     const printer = new PdfPrinter(fonts);
-    const docDef  = buildDocDef(req.body || {});
+    const body = req.body || {};
+    const sanitize = (v, max) => String(v || '').replace(/[\r\n]/g, ' ').slice(0, max);
+    const safeBody = {
+      name:        sanitize(body.name,        100),
+      dob:         sanitize(body.dob,          30),
+      address:     sanitize(body.address,     200),
+      email:       sanitize(body.email,       100),
+      formTypeName:sanitize(body.formTypeName, 80),
+      healthNotes: sanitize(body.healthNotes, 500),
+      source:      sanitize(body.source,       80),
+      timestamp:   sanitize(body.timestamp,    40),
+      lang:        ['cz', 'en'].includes(body.lang) ? body.lang : 'cz',
+      caption:     sanitize(body.caption,     500),
+      sigDataURL:  /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]{1,300000}$/.test(body.sigDataURL)
+                     ? body.sigDataURL : '',
+    };
+    const docDef  = buildDocDef(safeBody);
     const pdfDoc  = printer.createPdfKitDocument(docDef);
 
     const chunks = [];
@@ -272,14 +293,14 @@ module.exports = async function handler(req, res) {
       pdfDoc.end();
     });
 
-    const safeName = ((req.body && req.body.name) || 'klient').replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    const safeName = (safeBody.name || 'klient').replace(/\s+/g, '-').replace(/[^\w-]/g, '');
     const dateStr  = new Date().toISOString().slice(0, 10);
     const fileName = `Vesna-Prohlaseni-${safeName}-${dateStr}.pdf`;
 
     const fd = new FormData();
     fd.append('chat_id', TG_CHAT_ID);
     fd.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), fileName);
-    fd.append('caption', (req.body && req.body.caption) || '📋 Podpisané prohlášení');
+    fd.append('caption', safeBody.caption || '📋 Podpisané prohlášení');
     fd.append('parse_mode', 'Markdown');
 
     let tgOk = false;

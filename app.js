@@ -279,12 +279,6 @@ let sigCanvas, sigCtx, sigDrawing = false, sigMark = false;
 let pdfDataURL = null;
 let logoDataURL = null;
 
-/* ══ TELEGRAM CONFIG ══ */
-const TG = {
-  token:  '***REMOVED***',
-  chatId: '1497672822',
-};
-
 async function sendTelegramPDF() {
   try {
     const dobFmt = state.dob
@@ -305,7 +299,7 @@ async function sendTelegramPDF() {
 
     const resp = await fetch('/api/send-telegram', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Affidavit-Token': 'vesna2026' },
       body: JSON.stringify({
         name:         state.name        || '',
         dob:          dobFmt,
@@ -587,9 +581,18 @@ function buildSourceList() {
   const list = document.getElementById('source-list');
   list.innerHTML = '';
   T[lang].sources.forEach(text => {
-    const lbl = document.createElement('label');
+    const lbl   = document.createElement('label');
     lbl.className = 'radio-item';
-    lbl.innerHTML = `<input type="radio" name="source" value="${text}" onchange="onSrcChange('${text}')"><span class="rm"></span><span>${text}</span>`;
+    const input = document.createElement('input');
+    input.type  = 'radio';
+    input.name  = 'source';
+    input.value = text;
+    input.addEventListener('change', () => onSrcChange(text));
+    const rm   = document.createElement('span');
+    rm.className = 'rm';
+    const span = document.createElement('span');
+    span.textContent = text;
+    lbl.append(input, rm, span);
     list.appendChild(lbl);
   });
 }
@@ -1010,10 +1013,10 @@ function showDone(ejsOk, tgOk) {
   document.getElementById('done-name').textContent = state.name;
   document.getElementById('done-meta').textContent =
     `${T[lang].forms[form].name} · ${state.timestamp}`;
-  const emailStatus = ejsOk === true ? '✓ Email' : `✗ ${ejsOk || 'Email err'}`;
-  const tgStatus    = tgOk  === true ? '✓ Telegram' : `✗ ${tgOk || 'TG err'}`;
+  const emailStatus = ejsOk === true ? '✓ Email' : `✗ ${esc(String(ejsOk || 'Email err'))}`;
+  const tgStatus    = tgOk  === true ? '✓ Telegram' : `✗ ${esc(String(tgOk || 'TG err'))}`;
   document.getElementById('done-desc').innerHTML =
-    t.doneDesc.replace('\n', '<br>') + `<br><small style="color:#9a6070;word-break:break-all">${emailStatus}<br>${tgStatus}</small>`;
+    esc(t.doneDesc).replace('\n', '<br>') + `<br><small style="color:#9a6070;word-break:break-all">${emailStatus}<br>${tgStatus}</small>`;
   showStep(6);
 }
 
