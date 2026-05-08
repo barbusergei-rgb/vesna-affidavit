@@ -5,6 +5,7 @@ const STUDIO_ADDRESS = 'Náměstí Míru 18, 120 00 Praha 2';
 const STUDIO_ICO     = '17213461';
 const TG_TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
 const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const TG_THREAD  = process.env.TG_THREAD_AFFIDAVIT || null; // message_thread_id топика "📑 Соглашения"
 
 // Конвертирует HTML → массив pdfmake-блоков
 // Сохраняет <strong> как bold, ▪ → •, пустые строки → параграф-отступ
@@ -299,6 +300,7 @@ module.exports = async function handler(req, res) {
 
     const fd = new FormData();
     fd.append('chat_id', TG_CHAT_ID);
+    if (TG_THREAD) fd.append('message_thread_id', TG_THREAD);
     fd.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), fileName);
     fd.append('caption', safeBody.caption || '📋 Podpisané prohlášení');
     fd.append('parse_mode', 'Markdown');
