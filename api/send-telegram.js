@@ -257,6 +257,7 @@ async function sendPdfEmail(pdfBuffer, fileName, clientData) {
         <tr><td style="padding:6px 0;color:#9a6070;">E-mail</td><td style="padding:6px 0;">${email || '—'}</td></tr>
         <tr><td style="padding:6px 0;color:#9a6070;">Typ formuláře</td><td style="padding:6px 0;">${formTypeName || '—'}</td></tr>
         <tr><td style="padding:6px 0;color:#9a6070;">Podepsáno</td><td style="padding:6px 0;">${timestamp || '—'}</td></tr>
+        ${clientData.source ? `<tr><td style="padding:6px 0;color:#9a6070;">Jak nás našli</td><td style="padding:6px 0;">${clientData.source}</td></tr>` : ''}
         ${healthNotes ? `<tr><td style="padding:6px 0;color:#9a6070;vertical-align:top;">Zdravotní obtíže</td><td style="padding:6px 0;color:#c0392b;">${healthNotes}</td></tr>` : ''}
       </table>
       <p style="margin-top:20px;font-size:12px;color:#b0a0a4;">PDF prohlášení je přiloženo k tomuto e-mailu.</p>
@@ -360,7 +361,7 @@ module.exports = async function handler(req, res) {
         `🗂 ${safeBody.formTypeName || '—'}\n` +
         `🔍 ${safeBody.source || '—'}\n` +
         `🕐 ${safeBody.timestamp || '—'}\n` +
-        `📧 PDF → vesna\\.report@vesnatattoo\\.com`;
+        `📧 PDF → ${(process.env.REPORT_EMAIL || 'vesna.souhlas@vesnatattoo.com').replace(/\./g, '\\.').replace(/@/g, '@')}`;
 
       const tgRes = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
         method: 'POST',
