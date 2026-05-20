@@ -264,7 +264,7 @@ async function sendPdfEmail(pdfBuffer, fileName, clientData) {
 
   await resend.emails.send({
     from: 'Vesna Affidavit <noreply@vesnatattoo.com>',
-    to:   'vesna.report@vesnatattoo.com',
+    to:   process.env.REPORT_EMAIL || 'vesna.report@vesnatattoo.com',
     subject: `Prohlášení — ${name || 'klient'} · ${timestamp || dateStr}`,
     html: htmlBody,
     attachments: [{
@@ -352,15 +352,15 @@ module.exports = async function handler(req, res) {
     let tgOk = false;
     let tgError = null;
     try {
+      const birthYear = safeBody.dob ? safeBody.dob.replace(/.*(\d{4}).*/, '$1') : '—';
       const tgText =
         `📑 *Podepsané prohlášení*\n` +
         `👤 ${safeBody.name || '—'}\n` +
-        `🎂 ${safeBody.dob || '—'}\n` +
-        `📍 ${safeBody.address || '—'}\n` +
-        `📧 ${safeBody.email || '—'}\n` +
+        `🎂 ${birthYear}\n` +
         `🗂 ${safeBody.formTypeName || '—'}\n` +
+        `🔍 ${safeBody.source || '—'}\n` +
         `🕐 ${safeBody.timestamp || '—'}\n` +
-        `📧 PDF → vesna.report@vesnatattoo.com`;
+        `📧 PDF → vesna\\.report@vesnatattoo\\.com`;
 
       const tgRes = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
         method: 'POST',
