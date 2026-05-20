@@ -5,10 +5,10 @@ const STUDIO_ADDRESS = 'Náměstí Míru 18, 120 00 Praha 2';
 const STUDIO_ICO     = '17213461';
 const TG_TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
 const TG_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-const TG_THREAD  = process.env.TG_THREAD_AFFIDAVIT || null; // message_thread_id топика "📑 Соглашения"
+const TG_THREAD  = process.env.TG_THREAD_AFFIDAVIT || null;
 
-// Конвертирует HTML → массив pdfmake-блоков
-// Сохраняет <strong> как bold, ▪ → •, пустые строки → параграф-отступ
+// ── HTML → pdfmake blocks ────────────────────────────────────────────────────
+
 function htmlToPdf(html, fontSize) {
   const fs = fontSize || 9;
   const blocks = [];
@@ -24,7 +24,6 @@ function htmlToPdf(html, fontSize) {
     const line = para.replace(/<br\s*\/?>/gi, '\n').trim();
     if (!line) continue;
 
-    // Параграф начинается с <strong>…</strong> — это заголовок секции
     const headerM = line.match(/^<strong>([\s\S]*?)<\/strong>([\s\S]*)$/i);
     if (headerM) {
       const title = headerM[1].replace(/<[^>]+>/g, '').trim();
@@ -38,6 +37,8 @@ function htmlToPdf(html, fontSize) {
   }
   return blocks;
 }
+
+// ── Declaration & GDPR text ──────────────────────────────────────────────────
 
 const DECLARATION = {
   cz: (name, dob, addr) =>
@@ -68,6 +69,8 @@ const GDPR_HTML = {
 
   en: `<strong>PERSONAL DATA PROCESSING DECLARATION (GDPR)</strong><br><br>Declaration pursuant to Regulation (EU) 2016/679 of the European Parliament and of the Council on the protection of natural persons with regard to the processing of personal data (hereinafter "GDPR").<br><br><strong>1. Data Controller</strong><br>The data controller is Vesna Tattoo Prague, Náměstí Míru 18, 120 00, Vinohrady, Praha 2 (hereinafter "the controller"), which hereby informs you pursuant to Art. 12 GDPR about the processing of your personal data and your rights.<br>In processing personal data we respect the standards of personal data protection and adhere to the following principles: we always process personal data for a clearly and intelligibly defined purpose, by defined means and methods, only for the period that is strictly necessary. We collect personal data of our clients and employees only to the extent necessary and do not pass them to third parties, except those directly involved in processes within the company for the purpose of their necessary processing.<br><br><strong>2. Scope of personal data processing</strong><br>Personal data are processed to the extent provided by the data subject to the controller in connection with the conclusion of a contractual or other legal relationship with the controller, on the basis of legitimate interest, or collected otherwise and processed in accordance with applicable law.<br><br><strong>3. Sources of personal data</strong><br>▪ directly from data subjects (registrations, questionnaires, contracts, declarations, web contact forms and chat, emails, phone, websites, business cards, etc.)<br>▪ publicly accessible registers, lists and records (e.g. commercial register, trade register, land registry, etc.)<br>▪ automated recording of electronic communications pursuant to Act No. 127/2005 Coll. and Decree No. 357/2012 Coll.<br><br><strong>4. Categories of personal data processed</strong><br>▪ address and identification data for unambiguous identification of the data subject (e.g. name, surname, title, date of birth, permanent address, ID/VAT number, photograph) and data enabling contact with the data subject<br>▪ IP addresses, phone numbers and other operational and location data collected and retained on the basis of statutory obligation<br>▪ IP addresses and other operational and location data to the extent necessary for maintaining service quality<br>▪ descriptive data (e.g. bank details)<br>▪ further data necessary for the fulfilment of the contract<br>▪ data provided beyond the scope of applicable laws, processed on the basis of the data subject's consent<br><br><!-- SPLIT --><strong>5. Purpose of personal data processing</strong><br>▪ purposes covered by the data subject's consent<br>▪ negotiation of a contractual relationship<br>▪ fulfilment of a contract<br>▪ protection of the rights of the controller, recipient or other affected persons (e.g. debt recovery)<br>▪ archiving pursuant to law<br>▪ selection procedures for vacant positions<br>▪ fulfilment of the controller's statutory obligations<br><br><strong>6. Method of processing and protection of personal data</strong><br>Processing of personal data is carried out by the controller at its premises, branches and registered office by individually authorised employees, or by a processor. Processing is carried out by electronic means and, where applicable, manually for personal data in paper form, in compliance with all security principles for the management and processing of personal data.<br><br><strong>7. Period of personal data processing</strong><br>In accordance with the time limits set out in the relevant contracts, the controller's records and filing management rules or applicable legislation, data are processed for the period strictly necessary to ensure the rights and obligations arising from the contractual relationship and from applicable legislation. Personal data are retained for a maximum of 10 years from the last contractual relationship.<br><br><strong>8. Transfer of personal data to other persons</strong><br>The controller will disclose your personal data to other persons only to the usual extent and only to processors or other recipients, typically suppliers of external services, in compliance with all principles arising from GDPR. Personal data may also be disclosed to the extent strictly necessary to legal, economic and tax advisers.<br><br><!-- SPLIT --><strong>9. Legal basis for processing</strong><br>The controller processes data with the consent of the data subject, except in cases provided by law where processing does not require consent. Pursuant to Art. 6(1) GDPR, the controller may process data without consent where:<br>▪ the data subject has given consent for one or more specific purposes,<br>▪ processing is necessary for the performance of a contract to which the data subject is party,<br>▪ processing is necessary for compliance with a legal obligation to which the controller is subject,<br>▪ processing is necessary to protect the vital interests of the data subject or another natural person,<br>▪ processing is necessary for the performance of a task carried out in the public interest,<br>▪ processing is necessary for the purposes of the legitimate interests pursued by the controller or a third party.<br><br><strong>11. Rights of data subjects</strong><br>Under GDPR the data subject has the following rights:<br>• to request access to personal data processed by the controller (Art. 15 GDPR),<br>• to request rectification or completion of inaccurate personal data (Art. 16 GDPR),<br>• to request erasure of personal data in cases governed by Art. 17 GDPR,<br>• to request restriction of processing in cases governed by Art. 18 GDPR,<br>• to obtain personal data in a structured, commonly used and machine-readable format and to transmit those data to another controller (Art. 20 GDPR),<br>• to object to processing pursuant to Art. 21 GDPR,<br>• to lodge a complaint with a supervisory authority.<br><br>We will promptly acknowledge every request and, without undue delay and at the latest within one month, provide the requested information or information about the measures taken. This period may be extended by a further two months where necessary.<br><br><strong>12. Right to object</strong><br>Where the legal basis for processing is legitimate interest, the data subject has the right to object at any time to such processing. In that case personal data will no longer be processed unless there are compelling legitimate grounds for the processing which override the interests, rights and freedoms of the data subject. The objection may be submitted via the contact details provided below.`,
 };
+
+// ── PDF document definition ──────────────────────────────────────────────────
 
 function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, source, timestamp, sigDataURL, lang }) {
   const l = lang === 'en' ? 'en' : 'cz';
@@ -103,11 +106,6 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       },
     ],
     margin: [0, 0, 0, 0],
-  };
-
-  const pinkLine = {
-    canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2.5, lineColor: '#FFC3CC' }],
-    margin: [0, 0, 0, 16],
   };
 
   const makeSigSection = () => [
@@ -207,7 +205,7 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       margin: [40, 8, 40, 0],
     }),
     content: [
-      // ── Страница 1: Декларация ──
+      // ── Page 1: Declaration ──
       header,
       { canvas: [{ type: 'line', x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2.5, lineColor: '#FFC3CC' }], margin: [0, 0, 0, 8] },
       { text: l === 'en' ? 'CLIENT DECLARATION' : 'ČESTNÉ PROHLÁŠENÍ', fontSize: 13, bold: true, color: '#3a1020', alignment: 'center', margin: [0, 0, 0, 6] },
@@ -218,17 +216,17 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
       ...sourceSection,
       ...makeSigSection(),
 
-      // ── Страница 2: GDPR часть 1 ──
+      // ── Page 2: GDPR part 1 ──
       { text: '', pageBreak: 'before' },
       gdprHeader,
       ...gdpr1,
 
-      // ── Страница 3: GDPR часть 2 ──
+      // ── Page 3: GDPR part 2 ──
       { text: '', pageBreak: 'before' },
       gdprHeader,
       ...gdpr2,
 
-      // ── Страница 4: GDPR часть 3 + подпись ──
+      // ── Page 4: GDPR part 3 + signature ──
       { text: '', pageBreak: 'before' },
       gdprHeader,
       ...gdpr3,
@@ -236,6 +234,47 @@ function buildDocDef({ name, dob, address, email, formTypeName, healthNotes, sou
     ],
   };
 }
+
+// ── Send PDF via email ───────────────────────────────────────────────────────
+
+async function sendPdfEmail(pdfBuffer, fileName, clientData) {
+  const { Resend } = require('resend');
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const { name, dob, address, email, formTypeName, timestamp, healthNotes } = clientData;
+
+  const htmlBody = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;">
+      <div style="border-bottom:3px solid #FFC3CC;padding-bottom:12px;margin-bottom:20px;">
+        <span style="font-size:22px;font-weight:700;color:#3a1020;">Vesna</span>
+        <span style="font-size:11px;color:#9a6070;letter-spacing:0.1em;text-transform:uppercase;margin-left:8px;">tattoo boutique</span>
+      </div>
+      <h2 style="color:#3a1020;font-size:18px;margin-bottom:16px;">📋 Nové podepsané prohlášení</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;color:#9a6070;width:140px;">Klient</td><td style="padding:6px 0;font-weight:600;">${name || '—'}</td></tr>
+        <tr><td style="padding:6px 0;color:#9a6070;">Datum narození</td><td style="padding:6px 0;">${dob || '—'}</td></tr>
+        <tr><td style="padding:6px 0;color:#9a6070;">Adresa</td><td style="padding:6px 0;">${address || '—'}</td></tr>
+        <tr><td style="padding:6px 0;color:#9a6070;">E-mail</td><td style="padding:6px 0;">${email || '—'}</td></tr>
+        <tr><td style="padding:6px 0;color:#9a6070;">Typ formuláře</td><td style="padding:6px 0;">${formTypeName || '—'}</td></tr>
+        <tr><td style="padding:6px 0;color:#9a6070;">Podepsáno</td><td style="padding:6px 0;">${timestamp || '—'}</td></tr>
+        ${healthNotes ? `<tr><td style="padding:6px 0;color:#9a6070;vertical-align:top;">Zdravotní obtíže</td><td style="padding:6px 0;color:#c0392b;">${healthNotes}</td></tr>` : ''}
+      </table>
+      <p style="margin-top:20px;font-size:12px;color:#b0a0a4;">PDF prohlášení je přiloženo k tomuto e-mailu.</p>
+    </div>`;
+
+  await resend.emails.send({
+    from: 'Vesna Affidavit <noreply@vesnatattoo.com>',
+    to:   'vesna.report@vesnatattoo.com',
+    subject: `Prohlášení — ${name || 'klient'} · ${timestamp || dateStr}`,
+    html: htmlBody,
+    attachments: [{
+      filename: fileName,
+      content:  pdfBuffer.toString('base64'),
+    }],
+  });
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────────
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -279,10 +318,10 @@ module.exports = async function handler(req, res) {
       source:      sanitize(body.source,       80),
       timestamp:   sanitize(body.timestamp,    40),
       lang:        ['cz', 'en'].includes(body.lang) ? body.lang : 'cz',
-      caption:     sanitize(body.caption,     500),
       sigDataURL:  /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]{1,300000}$/.test(body.sigDataURL)
                      ? body.sigDataURL : '',
     };
+
     const docDef  = buildDocDef(safeBody);
     const pdfDoc  = printer.createPdfKitDocument(docDef);
 
@@ -298,17 +337,42 @@ module.exports = async function handler(req, res) {
     const dateStr  = new Date().toISOString().slice(0, 10);
     const fileName = `Vesna-Prohlaseni-${safeName}-${dateStr}.pdf`;
 
-    const fd = new FormData();
-    fd.append('chat_id', TG_CHAT_ID);
-    if (TG_THREAD) fd.append('message_thread_id', TG_THREAD);
-    fd.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), fileName);
-    fd.append('caption', safeBody.caption || '📋 Podpisané prohlášení');
-    fd.append('parse_mode', 'Markdown');
+    // ── 1. Send PDF to vesna.report@vesnatattoo.com ──
+    let emailError = null;
+    if (process.env.RESEND_API_KEY) {
+      try {
+        await sendPdfEmail(pdfBuffer, fileName, safeBody);
+      } catch (e) {
+        emailError = e.message;
+        console.error('Email error:', e);
+      }
+    }
 
+    // ── 2. Send Telegram notification (text only — no PDF) ──
     let tgOk = false;
     let tgError = null;
     try {
-      const tgRes = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: fd });
+      const tgText =
+        `📑 *Podepsané prohlášení*\n` +
+        `👤 ${safeBody.name || '—'}\n` +
+        `🎂 ${safeBody.dob || '—'}\n` +
+        `📍 ${safeBody.address || '—'}\n` +
+        `📧 ${safeBody.email || '—'}\n` +
+        `🗂 ${safeBody.formTypeName || '—'}\n` +
+        `🕐 ${safeBody.timestamp || '—'}\n` +
+        `📧 PDF → vesna.report@vesnatattoo.com`;
+
+      const tgRes = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TG_CHAT_ID,
+          ...(TG_THREAD ? { message_thread_id: Number(TG_THREAD) } : {}),
+          text: tgText,
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true,
+        }),
+      });
       const tgData = await tgRes.json();
       tgOk = tgData.ok;
       if (!tgOk) tgError = tgData.description || JSON.stringify(tgData);
@@ -319,6 +383,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: tgOk,
       tgError,
+      emailError,
       pdfBase64: pdfBuffer.toString('base64'),
     });
   } catch (e) {

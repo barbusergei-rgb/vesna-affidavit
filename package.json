@@ -5,6 +5,7 @@
     "build": "echo built"
   },
   "dependencies": {
-    "pdfmake": "^0.2.9"
+    "pdfmake": "^0.2.9",
+    "resend": "^4.0.0"
   }
 }
