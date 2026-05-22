@@ -381,6 +381,21 @@ module.exports = async function handler(req, res) {
       tgError = e.message;
     }
 
+    // ── 3. Send source to Google Sheets via Make.com ──
+    if (process.env.MAKE_SOURCES) {
+      const firstName = (safeBody.name || '').split(' ')[0] || '—';
+      fetch(process.env.MAKE_SOURCES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          timestamp:  safeBody.timestamp || new Date().toISOString(),
+          formType:   safeBody.formTypeName || '—',
+          source:     safeBody.source || '—',
+          name:       firstName,
+        }),
+      }).catch(() => {});
+    }
+
     return res.status(200).json({
       ok: tgOk,
       tgError,
