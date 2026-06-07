@@ -359,6 +359,7 @@ module.exports = async function handler(req, res) {
         `👤 ${safeBody.name || '—'}\n` +
         `🎂 ${birthYear}\n` +
         `🗂 ${safeBody.formTypeName || '—'}\n` +
+        `🩺 ${safeBody.healthNotes || '—'}\n` +
         `🔍 ${safeBody.source || '—'}\n` +
         `🕐 ${safeBody.timestamp || '—'}\n` +
         `📧 PDF → ${(process.env.REPORT_EMAIL || 'vesna.souhlas@vesnatattoo.com').replace(/\./g, '\\.').replace(/@/g, '@')}`;
